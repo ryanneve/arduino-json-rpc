@@ -1,6 +1,7 @@
 /*
   JsonRPCServer.cpp - Simple JSON-RPC Server for Arduino
   Created by Meir Tseitlin, March 5, 2014. This code is based on https://code.google.com/p/ajson-rpc/
+  Modified by frmdstryr, 19 Nov 2016
   Released under GPLv2 license.
 */
 #include "Arduino.h"
@@ -40,22 +41,26 @@ void JsonRPCServer::registerMethod(String methodName, JSON_PROC_STATIC_T callbac
 void JsonRPCServer::processMessage(aJsonObject *msg)
 {
     aJsonObject* method = aJson.getObjectItem(msg, "method");
+    aJsonObject *response = aJson.createObject();
     if (!method)
     {
-	// not a valid Json-RPC message
-        Serial.flush();
+
+    	aJsonObject *error = aJson.createObject();
+    	// not a valid Json-RPC message
+    	aJson.addItemToObject(error, "code", aJson.createItem(-32600));
+    	aJson.addItemToObject(error, "message", aJson.createItem("Invalid Request."));
+    	aJson.addItemToObject(response,"error",error);
+		aJson.print(response, &_jsonStream);
+		aJson.deleteItem(error);
+		aJson.deleteItem(response);
         return;
     }
     
     aJsonObject* params = aJson.getObjectItem(msg, "params");
-    if (!params)
-    {
-	Serial.flush();
-	return;
-    }
+
     
     String methodName = method->valuestring;
-    for (int i=0; i<mymap->used; i++)
+    for (unsigned int i=0; i<mymap->used; i++)
     {
         Mapping* mapping = &(mymap->mappings[i]);
         if (methodName.equals(mapping->name))
@@ -63,50 +68,76 @@ void JsonRPCServer::processMessage(aJsonObject *msg)
 			switch (mapping->retType) {
 			case	JSON_RPC_RET_TYPE_NONE:
 				mapping->callback(this, params);
+				aJson.addItemToObject(response, "result", aJson.createNull());
 				break;
-			case	JSON_RPC_RET_TYPE_NUMERIC:
+			case	JSON_RPC_RET_TYPE_INT:
 				{
-					JSON_PROC_NUM_STATIC_T numCallback = (JSON_PROC_NUM_STATIC_T) mapping->callback;
+					JSON_PROC_INT_STATIC_T callback = (JSON_PROC_INT_STATIC_T) mapping->callback;
 					
-					int ret = numCallback(this, params);
+					int ret = callback(this, params);
+					aJson.addItemToObject(response, "result", aJson.createItem((int)ret));
+				}
+				break;
+			case	JSON_RPC_RET_TYPE_BOOL:
+				{
+					JSON_PROC_BOOL_STATIC_T callback = (JSON_PROC_BOOL_STATIC_T) mapping->callback;
 					
-					// Create answer
-					aJsonObject *answer = aJson.createObject();
-					aJson.addItemToObject(answer, "result", aJson.createItem((int)ret));
-					aJson.addItemToObject(answer, "error", aJson.createNull());
-					
-					// Send answer
-					aJson.print(answer, &_jsonStream);
-					
-					// Delete answer
-					aJson.deleteItem(answer);
+					bool ret = callback(this, params);
+					aJson.addItemToObject(response, "result", aJson.createItem(ret));
+				}
+				break;
+			case	JSON_RPC_RET_TYPE_FLOAT:
+				{
+					JSON_PROC_FLOAT_STATIC_T callback = (JSON_PROC_FLOAT_STATIC_T) mapping->callback;
+
+					float ret = callback(this, params);
+					aJson.addItemToObject(response, "result", aJson.createItem(ret));
+				}
+				break;
+			case	JSON_RPC_RET_TYPE_DOUBLE:
+				{
+					JSON_PROC_DOUBLE_STATIC_T callback = (JSON_PROC_DOUBLE_STATIC_T) mapping->callback;
+
+					double ret = callback(this, params);
+					aJson.addItemToObject(response, "result", aJson.createItem(ret));
 				}
 				break;
 			case	JSON_RPC_RET_TYPE_STRING:
 				{
-					//String ret = mapping->callback(this, params);
-					JSON_PROC_STRING_STATIC_T stringCallback = (JSON_PROC_STRING_STATIC_T) mapping->callback;
-					
-					String ret = stringCallback(this, params);
-					
-					// Create answer
-					aJsonObject *answer = aJson.createObject();
-					aJson.addItemToObject(answer, "result", aJson.createItem(ret.c_str()));
-					aJson.addItemToObject(answer, "error", aJson.createNull());
-					
-					// Send answer
-					aJson.print(answer, &_jsonStream);
-					
-					// Delete answer
-					aJson.deleteItem(answer);
+					JSON_PROC_STRING_STATIC_T callback = (JSON_PROC_STRING_STATIC_T) mapping->callback;
+					String ret = callback(this, params);
+					aJson.addItemToObject(response, "result", aJson.createItem(ret.c_str()));
 					
 				}
 				break;
+//			case	JSON_RPC_RET_TYPE_OBJECT:
+//				{
+//					JSON_PROC_OBJECT_T callback = (JSON_PROC_OBJECT_T) mapping->callback;
+//					aJsonObject ret = callback(this, params);
+//					aJson.addItemToObject(response, "result", ret);
+//					aJson.print(response, &_jsonStream);
+//					aJson.deleteItem(ret);
+//					aJson.deleteItem(response);
+//					return;
+//
+//				}
+//				break;
 			}
 			
+			aJson.print(response, &_jsonStream);
+			aJson.deleteItem(response);
 			return;
 		}
     }
+
+    // If we get here... the Method is not found
+	aJsonObject *error = aJson.createObject();
+	aJson.addItemToObject(error, "code", aJson.createItem(-32601));
+	aJson.addItemToObject(error, "message", aJson.createItem("Method not found."));
+	aJson.addItemToObject(response,"error",error);
+	aJson.print(response, &_jsonStream);
+	aJson.deleteItem(error);
+	aJson.deleteItem(response);
 }
 
 void JsonRPCServer::process() {
@@ -125,7 +156,14 @@ void JsonRPCServer::process() {
 			processMessage(msg);
 			aJson.deleteItem(msg);
 			} else {
-			Serial.flush();
+				aJsonObject *response = aJson.createObject();
+				aJsonObject *error = aJson.createObject();
+				aJson.addItemToObject(error, "code", aJson.createItem(-32700));
+				aJson.addItemToObject(error, "message", aJson.createItem("Parse error."));
+				aJson.addItemToObject(response,"error",error);
+				aJson.print(response, &_jsonStream);
+				aJson.deleteItem(error);
+				aJson.deleteItem(response);
 		}
 	}
 	
