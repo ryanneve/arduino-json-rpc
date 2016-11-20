@@ -13,8 +13,12 @@
 
 enum JSON_RPC_RET_TYPE {
 	JSON_RPC_RET_TYPE_NONE,
-	JSON_RPC_RET_TYPE_NUMERIC,
-	JSON_RPC_RET_TYPE_STRING	
+	JSON_RPC_RET_TYPE_BOOL,
+	JSON_RPC_RET_TYPE_INT,
+	JSON_RPC_RET_TYPE_FLOAT,
+	JSON_RPC_RET_TYPE_DOUBLE,
+	JSON_RPC_RET_TYPE_STRING
+	//JSON_RPC_RET_TYPE_OBJECT
 };
 
 class JsonRPCServer;
@@ -22,11 +26,23 @@ class JsonRPCServer;
 typedef void (JsonRPCServer::*JSON_PROC_T)(aJsonObject*);
 typedef void (*JSON_PROC_STATIC_T)(JsonRPCServer*, aJsonObject*);
 
-typedef int (JsonRPCServer::*JSON_PROC_NUM_T)(aJsonObject*);
-typedef int (*JSON_PROC_NUM_STATIC_T)(JsonRPCServer*, aJsonObject*);
+typedef bool (JsonRPCServer::*JSON_PROC_BOOL_T)(aJsonObject*);
+typedef bool (*JSON_PROC_BOOL_STATIC_T)(JsonRPCServer*, aJsonObject*);
+
+typedef int (JsonRPCServer::*JSON_PROC_INT_T)(aJsonObject*);
+typedef int (*JSON_PROC_INT_STATIC_T)(JsonRPCServer*, aJsonObject*);
+
+typedef float (JsonRPCServer::*JSON_PROC_FLOAT_T)(aJsonObject*);
+typedef float (*JSON_PROC_FLOAT_STATIC_T)(JsonRPCServer*, aJsonObject*);
+
+typedef double (JsonRPCServer::*JSON_PROC_DOUBLE_T)(aJsonObject*);
+typedef double (*JSON_PROC_DOUBLE_STATIC_T)(JsonRPCServer*, aJsonObject*);
 
 typedef String (JsonRPCServer::*JSON_PROC_STRING_T)(aJsonObject*);
 typedef String (*JSON_PROC_STRING_STATIC_T)(JsonRPCServer*, aJsonObject*);
+
+//typedef aJsonObject (JsonRPCServer::*JSON_PROC_OBJECT_T)(aJsonObject*);
+//typedef aJsonObject (*JSON_PROC_OBJECT_STATIC_T)(JsonRPCServer*, aJsonObject*);
 
 
 struct Mapping
