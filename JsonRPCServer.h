@@ -90,7 +90,7 @@ protected:
 	void processMessage(aJsonObject *msg);
 	virtual void registerProcs() = 0;
 private:
-	FuncMap* mymap;
+	FuncMap* registry;
 	aJsonStream _jsonStream;
 };
 
