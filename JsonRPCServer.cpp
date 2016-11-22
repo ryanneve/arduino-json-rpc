@@ -112,7 +112,7 @@ void JsonRPCServer::processMessage(aJsonObject *msg) {
 				}
 				case JSON_RPC_RET_TYPE_OBJECT: {
 					JSON_PROC_OBJECT_STATIC_T callback = (JSON_PROC_OBJECT_STATIC_T) mapping->callback;
-					aJsonObject* ret = callback(this, params);
+					aJsonObject *ret = callback(this, params);
 					aJson.addItemToObject(response, "result", ret);
 					aJson.print(response, &_jsonStream);
 					aJson.deleteItem(ret);
