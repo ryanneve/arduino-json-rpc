@@ -157,7 +157,6 @@ void JsonRPCServer::process() {
 		aJsonObject *msg = aJson.parse(&_jsonStream);
 		if (msg) {
 			processMessage(msg);
-			aJson.deleteItem(msg);
 		} else {
 			aJsonObject *response = aJson.createObject();
 			aJsonObject *error = aJson.createObject();
@@ -170,6 +169,7 @@ void JsonRPCServer::process() {
 			aJson.deleteItem(error);
 			aJson.deleteItem(response);
 		}
+		aJson.deleteItem(msg);
 	}
 	
 }
