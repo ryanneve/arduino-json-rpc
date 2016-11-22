@@ -41,8 +41,8 @@ typedef double (*JSON_PROC_DOUBLE_STATIC_T)(JsonRPCServer*, aJsonObject*);
 typedef String (JsonRPCServer::*JSON_PROC_STRING_T)(aJsonObject*);
 typedef String (*JSON_PROC_STRING_STATIC_T)(JsonRPCServer*, aJsonObject*);
 
-//typedef aJsonObject (JsonRPCServer::*JSON_PROC_OBJECT_T)(aJsonObject*);
-//typedef aJsonObject (*JSON_PROC_OBJECT_STATIC_T)(JsonRPCServer*, aJsonObject*);
+typedef aJsonObject* (JsonRPCServer::*JSON_PROC_OBJECT_T)(aJsonObject*);
+typedef aJsonObject* (*JSON_PROC_OBJECT_STATIC_T)(JsonRPCServer*, aJsonObject*);
 
 
 struct Mapping
