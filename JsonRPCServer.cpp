@@ -158,6 +158,7 @@ void JsonRPCServer::process() {
 		if (msg) {
 			processMessage(msg);
 		} else {
+			_jsonStream.flush();
 			aJsonObject *response = aJson.createObject();
 			aJsonObject *error = aJson.createObject();
 			aJson.addItemToObject(response,"jsonrpc",aJson.createItem("2.0"));
